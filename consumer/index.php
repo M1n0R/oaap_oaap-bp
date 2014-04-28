@@ -60,7 +60,7 @@ echo "<br>Ваш e-mail на П-С: <b>".$json_object->email."<b><br>";
 }
 ?>
         <h1>ПОРТАЛ-КЛИЕНТ</h1>
-        <b>Введите URL адрес портала-клиента:</b>
+        <b>Введите URL адрес портала-сервера:</b>
         <form action="consumer.php" method="GET">
             URL: <input type="text" name="url-ps"><br>
             <input type="submit">

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xrds:XRDS xmlns:xrds="xri://$xrds" xmlns="xri://$xrd*($v*2.0)">
+<XRD>
+<Service priority="10">
+      <Type>OAAP</Type>
+      <URI>http://oaap-provider/sa.php</URI>
+</Service>
+<Service priority="10">
+      <Type>OAAP2</Type>
+      <URI>http://oaap-provider/sa.php2</URI>
+</Service>
+</XRD>
+</xrds:XRDS>

@@ -1,1 +1,1 @@
-http://localhost/diplom/provider/sa.php
+http://oaap-provider/sa.php

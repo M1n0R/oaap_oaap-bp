@@ -12,7 +12,7 @@ class discover{
         $mass = explode("/", $url, 4);
         $out = "GET /".$mass[3]." HTTP/1.1\r\n";
         $out .= "Host: ".$mass[2]."\r\n";
-//        $out .= "Accept: application/xrds+xml\r\n";
+        $out .= "Accept: application/xrds+xml\r\n";
         $out .= "Connection: Close\r\n\r\n";
         $socket = fsockopen($mass[2], 80);
         fwrite($socket, $out);
@@ -49,7 +49,67 @@ class discover{
         }
         return $urlSA;
     }
-
+    private function xrdsget($content) {
+        $mas = explode("\r\n\r\n", $content);
+        $tmp = explode("\r\n", $mas[0]);
+        $headers = array();
+        for($i = 0; $i < sizeof($tmp);$i++){
+            $ttmp = explode(":", $tmp[$i],2);
+            $headers[strtolower(trim($ttmp[0]))] = strtolower(trim($ttmp[1]));
+        }
+        if($headers['content-type'] == 'application/xrds+xml'){
+            $xml = new SimpleXMLElement(trim($mas[1]));
+            foreach ($xml->XRD->Service as $key => $value) {
+                if($value->Type == "OAAP"){
+                    return $value->URI;
+                }
+            }
+        }  else {
+            return FALSE;
+        }
+        return FALSE;
+    }
+    private function xrdsHeader($content){
+        $xrdsURL = FALSE;
+        $mass = explode("\r\n\r\n", $content,2);
+        $headers = explode("\r\n",$mass[0]);
+        for($i = 1; $i < sizeof($headers);$i++){
+            preg_match("/X\-XRDS\-Location\:(.*)/", $headers[$i],$match);
+            if(isset($match[1])){
+                $xrdsURL = $match[1];
+            }
+        }
+        if($xrdsURL){
+            $content = $this->getContent($xrdsURL);
+            $mas = explode("\r\n\r\n", $content);
+            $xml = new SimpleXMLElement(trim($mas[1]));
+            foreach ($xml->XRD->Service as $key => $value) {
+                if($value->Type == "OAAP"){
+                    return $value->URI;
+                }
+            }
+        }
+        return FALSE;
+    }
+    public function xrdsHTML($content) {
+        preg_match("/\<meta.*http\-equiv=\"X\-XRDS\-Location\".*\>/", $content,$match);
+        preg_match("/content=\"(.*)\"/", $match[0],$urlXRDS);
+        $xrdsURL = FALSE;
+        if(isset($urlXRDS[1])){
+            $xrdsURL = $urlXRDS[1];
+        }
+        if($xrdsURL){
+            $content = $this->getContent($xrdsURL);
+            $mas = explode("\r\n\r\n", $content);
+            $xml = new SimpleXMLElement(trim($mas[1]));
+            foreach ($xml->XRD->Service as $key => $value) {
+                if($value->Type == "OAAP"){
+                    return $value->URI;
+                }
+            }
+        }
+        return FALSE;
+    }
     public function __construct($url){
         $content = $this->getContent($url);
         $urlSA = $this->urlHeaderDiscovery($content);
@@ -57,7 +117,16 @@ class discover{
             $urlSA = $this->urlHtmlDicovery($content);
         }
         if(!$urlSA){
+            $urlSA = $this->xrdsget($content);
+        }
+        if(!$urlSA){
             $urlSA = $this->openFileDiscovery($url);
+        }
+        if(!$urlSA){
+            $urlSA = $this->xrdsHeader($content);
+        }
+        if(!$urlSA){
+            $urlSA = $this->xrdsHTML($content);
         }
         $this->urlSA = $urlSA;
     }
@@ -272,10 +341,9 @@ class oaap{
 }
 
 echo "<h1>I am a client library</h1>";
+$url;
 if(isset($_GET['url-ps'])){
-    $url = $_GET['url-ps'];
-    //die($url);
-   
+    $url = $_GET['url-ps'];   
 }
 $oaap = new oaap($url); /*Запускаем процесс*/
 
