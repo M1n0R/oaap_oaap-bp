@@ -20,7 +20,7 @@ if(isset($_GET['def'])){
     setcookie($match[1],$str);
 }
         ?>
-<html>
+<html1>
     <head>
         <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
         <title>BACKEND</title>
